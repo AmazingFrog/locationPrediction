@@ -8,31 +8,32 @@
 #include <cmath>
 #include <algorithm>
 
-
-
 #include "user.h"
 #include "types.h"
 #include "markovTransferMatrix.h"
-
-
 
 
 using namespace std;
 
 unsigned int gsum = 0;
 double latMin = 181, latMax = -181, lngMin = 181, lngMax = -181, dis = 0.03;
+unsigned int checkinRecord::xnum = 0;
+unsigned int checkinRecord::ynum = 0;
 
 void getCheckinRecords(vector<checkinRecord>& checkinReocrds, const string& fileName);
 void getCheckinRecords(vector<checkinRecord>& checkinReocrds, const char* fileName);
 void initUsers(vector<user>& users, vector<checkinRecord>& checkinRecords);
-
+void getLRNodesFromUsers(const vector<user>& users, vector<lrNode>& lrTrainSet);
 
 int main(int argc, const char* argv[]) {
+	user::setPlaceNum(10);
 	vector<user> users;
 	vector<checkinRecord> checkinRecords;
+	vector<lrNode> lrTrainSet;
 
 	getCheckinRecords(checkinRecords,"first_training.csv");
 	initUsers(users, checkinRecords);
+	getLRNodesFromUsers(users, lrTrainSet);
 
 	system("pause");
 	return 0;
@@ -67,13 +68,17 @@ void getCheckinRecords(vector<checkinRecord>& checkinRecords, const char* fileNa
 	}
 	checkinRecords.pop_back();
 
-	xnum = (latMax - latMin) / dis;
-	ynum = (lngMax - lngMin) / dis;
+	xnum = static_cast<unsigned int>((latMax - latMin) / dis);
+	ynum = static_cast<unsigned int>((lngMax - lngMin) / dis);
 	gsum = xnum * ynum;
+	checkinRecord::xnum = xnum;
+	checkinRecord::ynum = ynum;
 
 	//计算每个签到数据的g_i
 	for (auto i = checkinRecords.begin(); i != checkinRecords.end(); ++i) {
-		i->g_i = abs(i->latLng.lat - latMin) / dis * ynum + abs(i->latLng.lng - lngMin);
+		i->x = static_cast<unsigned int>(abs(i->latLng.lat - latMin) / dis);
+		i->y = static_cast<unsigned int>(abs(i->latLng.lng - lngMin) / dis);
+		i->g_i = i->x * ynum + i->y;
 	}
 
 	//按照用户名从小到大排序
@@ -89,27 +94,29 @@ void initUsers(vector<user>& users, vector<checkinRecord>& checkinRecords) {
 		while (end != checkinRecords.end() && beg->userID == end->userID) {
 			++end;
 		}
-		sort(beg, end, [](const checkinRecord& a, const checkinRecord& b)->bool {return a.timestamp < b.timestamp; });
 
 		//添加用户轨迹
 		//[i,j)为同一天
 		user newUser;
 		newUser.setID(beg->userID);
-		for (auto i = beg; i != end;) {
-			auto j = i + 1;
-			while(j != end) {
-				if (j->date.tm_year == i->date.tm_year && j->date.tm_yday == i->date.tm_yday) {
-					++j;
-				}
-				else {
-					break;
-				}
-			}
-			newUser.addTrace(make_pair(i, j));
-			i = j;
-		}
+		newUser.addTrace(beg, end);
 
 		users.push_back(newUser);
 		beg = end;
 	}
+
+	//计算每个用户自己的已到过的地点
+	for (auto i = users.begin(); i != users.end(); ++i) {
+		i->calcUserHasArrivalsPlane();
+	}
+
 }
+
+void getLRNodesFromUsers(const vector<user>& users, vector<lrNode>& lrTrainSet) {
+	for (auto i = users.begin(); i != users.end(); ++i) {
+		std::vector<lrNode> add(i->getLRNode());
+		lrTrainSet.insert(lrTrainSet.end(), add.begin(), add.end());
+	}
+}
+
+

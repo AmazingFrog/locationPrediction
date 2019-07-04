@@ -16,29 +16,32 @@ struct latlng{
 struct checkinRecord {
 	unsigned int userID;
 
-	//签到位置g_i
-	//从0开始
-	unsigned int g_i;
-
 	//签到日期的时间戳
 	time_t timestamp;
-	tm date;
 
 	latlng latLng;
 
+	tm date;
+	//签到位置g_i
+	//从0开始
+	unsigned int g_i;
+	unsigned int x;
+	unsigned int y;
+
+	static unsigned int xnum;
+	static unsigned int ynum;
+
 	checkinRecord() = default;
-	checkinRecord(const unsigned int& id, const time_t& _timestamp, const latlng& _latlng) :
+	checkinRecord(const unsigned int id, const time_t _timestamp, const latlng& _latlng) :
 		userID(id),
 		timestamp(_timestamp),
-		latLng(_latlng){
-		this->date = *gmtime(&this->timestamp);
-	}
-	checkinRecord(const unsigned int& id, const time_t& _timestamp, const double& lat, const double lng) :
+		latLng(_latlng),
+		date(*gmtime(&_timestamp)){}
+	checkinRecord(const unsigned int id, const time_t _timestamp, const double lat, const double lng) :
 		userID(id),
-		timestamp(timestamp),
-		latLng(latlng(lat,lng)){
-		this->date = *gmtime(&this->timestamp);
-	}
+		timestamp(_timestamp),
+		latLng(latlng(lat,lng)),
+		date(*gmtime(&_timestamp)){}
 };
 
 //逻辑回归训练数据
@@ -69,6 +72,5 @@ struct lrNode {
 		nr(_nr),
 		nod(_nod){}
 };
-
 
 #endif // _TYPES_H_

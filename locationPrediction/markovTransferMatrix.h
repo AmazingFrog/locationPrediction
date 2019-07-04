@@ -1,6 +1,7 @@
 #ifndef _MARKOV_TRANSFER_MATRIX_H_
 #define _MARKOV_TRANSFER_MATRIX_H_
 
+#include <cstring>
 #include <cstdlib>
 #include <memory>
 #include <cassert>
@@ -10,26 +11,32 @@ class markovTransferMatrix {
 private:
 	//矩阵 n*n
 	//元素默认值为1
-	std::unique_ptr<float*> mat = nullptr;
+	std::unique_ptr<float*> mat;
 
 	//每行个数
 	unsigned int n = 0;
-
-	void copyTo(markovTransferMatrix& dest) const;
+	
 	void mul(const markovTransferMatrix& a);
 public:
 	markovTransferMatrix() = default;
 	markovTransferMatrix(const unsigned int& newN);
+	markovTransferMatrix(const markovTransferMatrix& a);
 
-	float* operator[](const unsigned int& row) const;
-	float* operator[](const int& row) const;
+	markovTransferMatrix& operator=(const markovTransferMatrix& a);
+
+	markovTransferMatrix& create(const unsigned int _n);
+
+	void copyTo(markovTransferMatrix& dest) const;
+
+	float* operator[](const unsigned int row) const;
+	float* operator[](const int row) const;
 
 	/**
 	* @brief   自乘nn次
 	* @para    nn 自乘的次数
 	* @return  自乘的结果
 	*/
-	markovTransferMatrix power(const unsigned int& nn) const;
+	markovTransferMatrix power(const unsigned int nn) const;
 };
 
 #endif // _MARKOV_TRANSFER_MATRIX_H_
