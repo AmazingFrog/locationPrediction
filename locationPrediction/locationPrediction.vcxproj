@@ -140,12 +140,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bpr.cpp" />
+    <ClCompile Include="logisticsRegression.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="markovTransferMatrix.cpp" />
     <ClCompile Include="user.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bpr.h" />
+    <ClInclude Include="logisticsRegression.h" />
     <ClInclude Include="markovTransferMatrix.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="user.h" />

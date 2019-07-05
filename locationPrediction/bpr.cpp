@@ -4,11 +4,11 @@
 #include <iostream>
 #endif // __DEBUG__
 
-bpr::bpr_impl::bpr_impl(const int* data, const unsigned int users, const unsigned int items) {
+shochuAlgorithm::BPR::Bpr_impl::Bpr_impl(const int* data, const unsigned int users, const unsigned int items) {
 	this->add(data, users, items);
 }
 
-void bpr::bpr_impl::add(const int* data, const unsigned int users,const unsigned int items) {
+void shochuAlgorithm::BPR::Bpr_impl::add(const int* data, const unsigned int users,const unsigned int items) {
 	assert(this->isAlreadAdd == false && "already add data");
 	unsigned int perUesrAlreadAdd = 0;
 	unsigned int perUserRecordMax = this->times * items;
@@ -21,7 +21,7 @@ void bpr::bpr_impl::add(const int* data, const unsigned int users,const unsigned
 			for (unsigned int j = 0; j < items; ++j) {
 				if (perUesrAlreadAdd < perUserRecordMax) {
 					if (data[u*items + i] && !data[u*items + j]) {
-						this->trainSet.push_back(triad(u, i, j));
+						this->trainSet.push_back(Triad(u, i, j));
 						++perUesrAlreadAdd;
 					}
 				}
@@ -39,15 +39,23 @@ void bpr::bpr_impl::add(const int* data, const unsigned int users,const unsigned
 	this->isAlreadAdd = true;
 }
 
-void bpr::bpr_impl::add(const triad a) {
+void shochuAlgorithm::BPR::Bpr_impl::add(const Triad& a) {
 	this->trainSet.push_back(a);
 }
 
-void bpr::bpr_impl::setTrainSetSize(const unsigned int a) {
+void shochuAlgorithm::BPR::Bpr_impl::add(Triad&& a) {
+	this->trainSet.push_back(a);
+}
+
+void shochuAlgorithm::BPR::Bpr_impl::add(unsigned int u,unsigned int i,unsigned int j) {
+	this->trainSet.push_back(Triad(u, i, j));
+}
+
+void shochuAlgorithm::BPR::Bpr_impl::setTrainSetSize(const unsigned int a) {
 	this->times = a;
 }
 
-double bpr::bpr_impl::predictUserItem(const unsigned int user, const unsigned int item) {
+double shochuAlgorithm::BPR::Bpr_impl::predictUserItem(const unsigned int user, const unsigned int item) const{
 	double ret = 0.0;
 	for (unsigned int i = 0; i < this->k; ++i) {
 		ret += (*this->w)[user*this->k + i] * (*this->h)[i*this->k + item];
@@ -55,7 +63,7 @@ double bpr::bpr_impl::predictUserItem(const unsigned int user, const unsigned in
 	return ret;
 }
 
-void bpr::bpr_impl::train(const double lambda, const double learnRate, const unsigned int step, const unsigned int k, const double threshold) {
+void shochuAlgorithm::BPR::Bpr_impl::train(const double lambda, const double learnRate, const unsigned int step, const unsigned int k, const double threshold) {
 	unsigned int runStep = 0;
 	unsigned int count = 0;
 	double loss[3] = { 0,0,0 };
@@ -129,7 +137,7 @@ void bpr::bpr_impl::train(const double lambda, const double learnRate, const uns
 	}
 }
 
-std::vector<std::pair<int,double> > bpr::bpr_impl::predict(const unsigned int user,const unsigned int n) {
+std::vector<std::pair<int,double> > shochuAlgorithm::BPR::Bpr_impl::predict(const unsigned int user,const unsigned int n) const{
 	assert(n <= this->items && "n must be less than or equal to items");
 	std::vector<std::pair<int,double> > ret;
 	std::unique_ptr<double*> t = std::make_unique<double*>(new double[this->items]);
@@ -142,7 +150,7 @@ std::vector<std::pair<int,double> > bpr::bpr_impl::predict(const unsigned int us
 	return ret;
 }
 
-void bpr::bpr_impl::loadData(const char* fileName){
+void shochuAlgorithm::BPR::Bpr_impl::loadData(const char* fileName){
 	std::fstream f;
 	std::unique_ptr<int*> data;
 	f.open(fileName, std::ios::in);
@@ -159,11 +167,11 @@ void bpr::bpr_impl::loadData(const char* fileName){
 	f.close();
 }
 
-void bpr::bpr_impl::loadData(const std::string& fileName) {
+void shochuAlgorithm::BPR::Bpr_impl::loadData(const std::string& fileName) {
 	this->loadData(fileName.c_str());
 }
 
-void bpr::bpr_impl::saveModel(const char* fileName) {
+void shochuAlgorithm::BPR::Bpr_impl::saveModel(const char* fileName) const{
 	std::fstream f;
 	f.open(fileName, std::ios::out);
 	assert(f.is_open() && "file don't find");
@@ -182,11 +190,11 @@ void bpr::bpr_impl::saveModel(const char* fileName) {
 	f.close();
 }
 
-void bpr::bpr_impl::saveModel(const std::string& fileName) {
+void shochuAlgorithm::BPR::Bpr_impl::saveModel(const std::string& fileName) const{
 	this->saveModel(fileName.c_str());
 }
 
-void bpr::bpr_impl::loadModel(const char* fileName) {
+void shochuAlgorithm::BPR::Bpr_impl::loadModel(const char* fileName) {
 	std::fstream f;
 	f.open(fileName, std::ios::in);
 	assert(f.is_open() && "file don't find");
@@ -217,6 +225,6 @@ void bpr::bpr_impl::loadModel(const char* fileName) {
 	f.close();
 }
 
-void bpr::bpr_impl::loadModel(const std::string& fileName) {
+void shochuAlgorithm::BPR::Bpr_impl::loadModel(const std::string& fileName) {
 	this->loadModel(fileName.c_str());
 }
