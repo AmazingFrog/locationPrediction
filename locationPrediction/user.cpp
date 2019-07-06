@@ -120,7 +120,7 @@ std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> user::getLRNode() c
 			arrivals.insert(i->g_i);
 			++alreadCalcFinishNum;
 
-            ret.emplace_back(trueVal, hod, dow, interval, avgDistance, accessRatio, nr, nod);
+            ret.push_back(shochuAlgorithm::LogisticsRegression::TrainNode(trueVal, { hod, dow, interval, avgDistance, accessRatio, nr, nod }));
 	}
 
 	return ret;

@@ -44,6 +44,4 @@ struct checkinRecord {
 		date(*gmtime(&_timestamp)){}
 };
 
-
-
 #endif // _TYPES_H_

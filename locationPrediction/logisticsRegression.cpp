@@ -2,8 +2,9 @@
 
 unsigned int shochuAlgorithm::LogisticsRegression::featureNum = 0;
 
-shochuAlgorithm::LogisticsRegression::TrainNode::TrainNode(double _predictVal, std::initializer_list<double> il) : trueVal(_predictVal){
-	this->setPrddictVal(_predictVal);
+shochuAlgorithm::LogisticsRegression::TrainNode::TrainNode(double _predictVal, std::initializer_list<double> featureIL) : trueVal(_predictVal){
+    assert(shochuAlgorithm::LogisticsRegression::featureNum != featureIL.size() && "shochuAlgorithm::LogisticsRegression::featureNum must be same with initlize_lise.size()");
+    this->setFeatureVal(featureIL);
 }
 
 shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::LogisticsRegression_impl() {
@@ -44,7 +45,7 @@ std::vector<double>& shochuAlgorithm::LogisticsRegression::LogisticsRegression_i
 			for (auto j = this->trainSet.begin(); j != this->trainSet.end(); ++j) {
 				double zi = 0;
 				for (int k = 0; k < shochuAlgorithm::LogisticsRegression::featureNum; ++k) {
-					zi += (this->model[k] * j->feature[k]);
+					zi += ((this->model[k]) * (j->feature[k]));
 				}
 				double hi = 1 / (i + exp(-zi));
 				//(h_i - y_i)*x_i
@@ -65,5 +66,5 @@ std::vector<double>& shochuAlgorithm::LogisticsRegression::LogisticsRegression_i
 }
 
 double shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::predict(const TrainNode& a) {
-
+    return 0.0;
 }

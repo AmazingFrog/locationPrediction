@@ -32,15 +32,19 @@ void getLRNodesFromUsers(const vector<user>& users, vector<TrainNode>& lrTrainSe
 
 int main(int argc, const char* argv[]) {
 	user::setPlaceNum(10);
+    shochuAlgorithm::LogisticsRegression::featureNum = 7;
 	vector<user> users;
 	vector<checkinRecord> checkinRecords;
 	vector<TrainNode> lrTrainSet;
     LogisticsRegression_impl lr;
 
+    
+
 	getCheckinRecords(checkinRecords,"first_training.csv");
 	initUsers(users, checkinRecords);
 	getLRNodesFromUsers(users, lrTrainSet);
 
+    
     lr.add(lrTrainSet);
     lr.train();
 

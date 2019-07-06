@@ -8,14 +8,16 @@
 
 namespace shochuAlgorithm {
 	namespace LogisticsRegression {
-		unsigned int featureNum;
+		extern unsigned int featureNum;
 
 		struct TrainNode {
 			double trueVal;
 			std::vector<double> feature;
+
 			TrainNode() = default;
-			TrainNode(double _predictVal, std::initializer_list<double> il);
-			void setPrddictVal(double val) {
+			TrainNode(double _predictVal, std::initializer_list<double> featureIL);
+
+			void setPredictVal(double val) {
 				this->trueVal = val;
 			}
 			void setFeatureVal(std::initializer_list<double> il) {
