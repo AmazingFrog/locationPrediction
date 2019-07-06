@@ -1,14 +1,14 @@
-#include "markovTransferMatrix.h"
+#include "MarkovTransferMatrix.h"
 
-markovTransferMatrix::markovTransferMatrix(const unsigned int& newN) {
+MarkovTransferMatrix::MarkovTransferMatrix(const unsigned int& newN) {
 	this->create(newN);
 }
 
-markovTransferMatrix::markovTransferMatrix(const markovTransferMatrix& a) {
+MarkovTransferMatrix::MarkovTransferMatrix(const MarkovTransferMatrix& a) {
 	*this = a;
 }
 
-markovTransferMatrix& markovTransferMatrix::create(const unsigned int _n) {
+MarkovTransferMatrix& MarkovTransferMatrix::create(const unsigned int _n) {
 	this->n = _n;
 
 	//检查内存是否分配成功
@@ -31,7 +31,7 @@ markovTransferMatrix& markovTransferMatrix::create(const unsigned int _n) {
 	}
 }
 
-markovTransferMatrix& markovTransferMatrix::operator=(const markovTransferMatrix& a) {
+MarkovTransferMatrix& MarkovTransferMatrix::operator=(const MarkovTransferMatrix& a) {
 	this->n = a.n;
 
 	try {
@@ -50,15 +50,15 @@ markovTransferMatrix& markovTransferMatrix::operator=(const markovTransferMatrix
 	memcpy(*(this->mat), *(a.mat), this->n*this->n * sizeof(float));
 }
 
-float* markovTransferMatrix::operator[](const unsigned int row) const {
+float* MarkovTransferMatrix::operator[](const unsigned int row) const {
 	return &((*(this->mat))[row*this->n]);
 }
 
-float* markovTransferMatrix::operator[](const int row) const {
+float* MarkovTransferMatrix::operator[](const int row) const {
 	return this->operator[](static_cast<const unsigned int>(row));
 }
 
-void markovTransferMatrix::copyTo(markovTransferMatrix& dest) const {
+void MarkovTransferMatrix::copyTo(MarkovTransferMatrix& dest) const {
 	dest.n = this->n;
 	if (dest.mat == nullptr) {
 		try {
@@ -77,8 +77,8 @@ void markovTransferMatrix::copyTo(markovTransferMatrix& dest) const {
 	memcpy(*(dest.mat), *this->mat, this->n*this->n * sizeof(float));
 }
 
-markovTransferMatrix markovTransferMatrix::power(const unsigned int nn) const {
-	markovTransferMatrix ret(this->n);
+MarkovTransferMatrix MarkovTransferMatrix::power(const unsigned int nn) const {
+	MarkovTransferMatrix ret(this->n);
 	if (nn == 0) {
 		return ret;
 	}
@@ -101,9 +101,9 @@ markovTransferMatrix markovTransferMatrix::power(const unsigned int nn) const {
 	return ret;
 }
 
-void markovTransferMatrix::mul(const markovTransferMatrix& a) {
+void MarkovTransferMatrix::mul(const MarkovTransferMatrix& a) {
 	assert(this->n == a.n && "n must be the same");
-	markovTransferMatrix res(this->n);
+	MarkovTransferMatrix res(this->n);
 
 	for (int i = 0; i < this->n; ++i) {
 		for (int j = 0; j < this->n; ++j) {

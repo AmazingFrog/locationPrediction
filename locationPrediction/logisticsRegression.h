@@ -1,3 +1,12 @@
+/**
+*  实例化该类前先对命名空间中的featureNum赋值
+*
+*
+*
+*
+*
+*
+*/
 #ifndef _LOGISTICS_REGRESSION_H_
 #define _LOGISTICS_REGRESSION_H_
 
@@ -40,7 +49,7 @@ namespace shochuAlgorithm {
 			LogisticsRegression_impl(const std::vector<TrainNode>& a);
 
 			/**
-			*
+			* @brief 添加数据
 			*/
 			void add(TrainNode&& a);
 			void add(const TrainNode& a);
@@ -48,12 +57,12 @@ namespace shochuAlgorithm {
 			void add(const std::vector<TrainNode>& a);
 			
 			/**
-			*
+			* @beief 训练
 			*/
 			std::vector<double>& train(double learnRate = 0.01);
 
 			/**
-			*
+			* @brief 预测
 			*/
 			double predict(const TrainNode& a);
 
@@ -65,6 +74,5 @@ namespace shochuAlgorithm {
 		};
 	}
 }
-
 
 #endif // _LOGISTICS_REGRESSION_H_

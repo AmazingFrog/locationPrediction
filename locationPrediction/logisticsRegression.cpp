@@ -66,5 +66,10 @@ std::vector<double>& shochuAlgorithm::LogisticsRegression::LogisticsRegression_i
 }
 
 double shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::predict(const TrainNode& a) {
-    return 0.0;
+	double ret = 0;
+	auto j = a.feature.begin();
+	for (auto i = this->model.begin(); i != this->model.end(); ++i,++j) {
+		ret += (*i) * (*j);
+	}
+	return ret;
 }

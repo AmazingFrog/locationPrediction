@@ -1,59 +1,67 @@
 #include "user.h"
 
-unsigned int user::placeNum = 0;
-bool user::placeNumSet = false;
+unsigned int User::placeNum = 0;
+bool User::placeNumSet = false;
 
-user::user() {
-	assert(user::placeNumSet && "placeNum not set.");
-	this->transMatrix.create(user::placeNum);
+User::User() {
+	assert(User::placeNumSet && "placeNum not set.");
+	this->transMatrix.create(User::placeNum);
 	this->ifHasArrivalsIsCalc = false;
 }
 
-user::user(const user& a) {
-	assert(user::placeNumSet && "placeNum not set.");
+User::User(const User& a) {
+	assert(User::placeNumSet && "placeNum not set.");
 	this->friends = a.friends;
 	this->id = a.id;
 	this->trace = a.trace;
+	this->placeProbability = a.placeProbability;
 	a.transMatrix.copyTo(this->transMatrix);
 	this->ifHasArrivalsIsCalc = false;
 }
 
-void user::setID(const unsigned int& i) {
+void User::setID(const unsigned int i) {
 	this->id = i;
 }
 
-void user::setPlaceNum(const unsigned int _placeNum) {
-	user::placeNum = _placeNum;
-	user::placeNumSet = true;
+void User::setDataSize(const unsigned int size) {
+	this->dataSetSize = size;
+	//this->
 }
 
-const std::set<unsigned int>& user::getHasArrivals() const {
-	return this->hasArrivals;
+void User::setPlaceNum(const unsigned int _placeNum) {
+	User::placeNum = _placeNum;
+	User::placeNumSet = true;
 }
 
-void user::addFriend(const user* fri) {
-	this->friends.push_back(fri);
+void User::addFriend(const User* fri) {
+	this->friends.insert(fri);
 }
 
-void user::addTrace(const std::vector<checkinRecord>::iterator& beg, const std::vector<checkinRecord>::iterator& end) {
+void User::addTrace(const std::vector<CheckinRecord>::const_iterator& beg, const std::vector<CheckinRecord>::const_iterator& end) {
 	this->trace.insert(this->trace.cend(), beg, end);
-	std::sort(this->trace.begin(), this->trace.end(), [](const checkinRecord& a, const checkinRecord& b)->bool {return a.timestamp < b.timestamp; });
-}
-void user::addTrace(const std::vector<checkinRecord>& a) {
-	for (auto i = a.begin(); i != a.end(); ++i) {
-		this->trace.push_back(*i);
+	std::sort(this->trace.begin(), this->trace.end(), [](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.timestamp < b.timestamp; });
+	//计算每个地点在历史签到轨迹里的概率
+	std::map<unsigned int, unsigned int> placeAppearNum;
+	unsigned int checkinTotalNum = this->trace.size();
+	for (auto i = this->trace.begin(); i != this->trace.end(); ++i) {
+		++(placeAppearNum[i->g_i]);
 	}
-	std::sort(this->trace.begin(), this->trace.end(), [](const checkinRecord& a, const checkinRecord& b)->bool {return a.timestamp < b.timestamp; });
+	for (auto i = placeAppearNum.begin(); i != placeAppearNum.end(); ++i) {
+		this->placeProbability[i->first] = static_cast<double>(i->second) / checkinTotalNum;
+	}
+}
+void User::addTrace(const std::vector<CheckinRecord>& a) {
+	this->addTrace(a.begin(), a.end());
 }
 
-void user::calcUserHasArrivalsPlane() {
+void User::calcUserHasArrivalsPlane() {
 	for (auto i = this->trace.begin(); i != this->trace.end(); ++i) {
 		this->hasArrivals.insert(i->g_i);
 	}
 	this->ifHasArrivalsIsCalc = true;
 }
 
-std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> user::getLRNode() const {
+std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> User::getLRNode() const {
 	double hod;
 	double dow;
 	double interval;
@@ -93,9 +101,9 @@ std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> user::getLRNode() c
 			for (int j = 0; j < 8; ++j) {
 				unsigned int nextX = i->x + dirt[j][0];
 				unsigned int nextY = i->y + dirt[j][1];
-				unsigned int nextG_I = nextX * checkinRecord::ynum + nextY;
+				unsigned int nextG_I = nextX * CheckinRecord::ynum + nextY;
 				//检查g_i是否超出范围
-				if (nextG_I < 0 || nextG_I >= checkinRecord::xnum*checkinRecord::ynum) {
+				if (nextG_I < 0 || nextG_I >= CheckinRecord::xnum*CheckinRecord::ynum) {
 					--placeNum;
 				}
 				//不超出范围的话才检查是否去过

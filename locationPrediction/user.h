@@ -1,14 +1,22 @@
+/*
+*  实例化该类前请务必调用uesr::setPlaceNum来设置地点个数
+*
+*
+*
+*
+*/
 #ifndef _USER_H_
 #define _USER_H_
 
 #include <cmath>
 #include <set>
+#include <map>
 #include <cassert>
 #include <vector>
 #include <algorithm>
 
 #include "types.h"
-#include "markovTransferMatrix.h"
+#include "MarkovTransferMatrix.h"
 #include "logisticsRegression.h"
 
 constexpr unsigned int INTERVAL_TIME_S = 1;
@@ -16,40 +24,54 @@ constexpr unsigned int INTERVAL_TIME_M = 60;
 constexpr unsigned int INTERVAL_TIME_H = 60 * 60;
 constexpr unsigned int INTERVAL_TIME_D = 60 * 60 * 24;
 
-class user {
+class User {
 private:
 	//用户id
 	unsigned int id;
 
+	//数据集大小
+	unsigned int dataSetSize;
+
 	//马尔可夫转移矩阵
 	//transMatrix[i][j] 表示从i转移到j的概率
-	markovTransferMatrix transMatrix;
+	MarkovTransferMatrix transMatrix;
 
 	//相似用户和亲密用户
-	std::vector<const user*> friends;
+	std::set<const User*> friends;
 
 	//用户去过的地点
 	std::set<unsigned int> hasArrivals;
 	bool ifHasArrivalsIsCalc;
 
-	//轨迹
-	//pair<vector<checkinRecord>::iterator, vector<checkinRecord>::iterator>
-	//相当于指针，直接存储当前轨迹第一个签到点和最后一个签到点的地址,通过checkinRecords(main.cpp:32)给出
-	//[first,second)
-	std::vector<checkinRecord> trace;
+	//签到轨迹
+	std::vector<CheckinRecord> trace;
+
+	//用户在历史签到轨迹里去过pair->first的概率为pair->second
+	std::map<unsigned int, double> placeProbability;
 
 	//地点个数
 	static unsigned int placeNum;
 	static bool placeNumSet;
 public:
-	user();
-	user(const user& a);
+	User();
+	User(const User& a);
 
 	/**
 	* @brief      设置用户id
 	* @parameter  i 用户id
 	*/
-	void setID(const unsigned int& i);
+	void setID(const unsigned int i);
+
+	/**
+	* @brief      设置数据集大小
+	* @para  size 每个数据集的大小
+	*/
+	void setDataSize(const unsigned int size);
+	/**
+	* @brief      获取用户id
+	* @return     用户id
+	*/
+	unsigned int getID();
 
 	/**
 	* @brief 实例化user前先调用该函数设置地点个数
@@ -62,15 +84,25 @@ public:
 	const std::set<unsigned int>& getHasArrivals() const;
 
 	/**
+	* @brief 获取用户每个点在历史签到轨迹中的概率的map
+	*/
+	const std::map<unsigned int,double>& getPlaceProbability() const;
+
+	/**
 	* @brief 添加用户的亲密用户或者是相似用户
 	*/
-	void addFriend(const user* fri);
+	void addFriend(const User* fri);
+
+	/**
+	* @brief 获取用户的亲密用户或者是相似用户
+	*/
+	const std::set<const User*>& getFirends() const;
 
 	/**
 	* @brief  添加签到轨迹
 	*/
-	void addTrace(const std::vector<checkinRecord>::iterator& beg, const std::vector<checkinRecord>::iterator& end);
-	void addTrace(const std::vector<checkinRecord>& a);
+	void addTrace(const std::vector<CheckinRecord>::const_iterator& beg, const std::vector<CheckinRecord>::const_iterator& end);
+	void addTrace(const std::vector<CheckinRecord>& a);
 
 	/**
 	* @brief 计算用户去过的地点,存在user::hasArrivals中
@@ -84,6 +116,20 @@ public:
 	std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> getLRNode() const;
 };
 
+inline unsigned int User::getID() {
+	return this->id;
+}
 
+inline const std::map<unsigned int, double>& User::getPlaceProbability() const {
+	return this->placeProbability;
+}
+
+inline const std::set<unsigned int>& User::getHasArrivals() const {
+	return this->hasArrivals;
+}
+
+inline const std::set<const User*>& User::getFirends() const {
+	return this->friends;
+}
 
 #endif // _USER_H_
