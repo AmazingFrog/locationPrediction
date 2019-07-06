@@ -11,12 +11,12 @@ namespace shochuAlgorithm {
 		unsigned int featureNum;
 
 		struct TrainNode {
-			double predictVal;
+			double trueVal;
 			std::vector<double> feature;
 			TrainNode() = default;
 			TrainNode(double _predictVal, std::initializer_list<double> il);
 			void setPrddictVal(double val) {
-				this->predictVal = val;
+				this->trueVal = val;
 			}
 			void setFeatureVal(std::initializer_list<double> il) {
 				assert(shochuAlgorithm::LogisticsRegression::featureNum != 0 && "shochuAlgorithm::LogisticsRegression::featureNum must not be 0");

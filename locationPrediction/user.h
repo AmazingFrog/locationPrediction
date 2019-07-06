@@ -9,6 +9,7 @@
 
 #include "types.h"
 #include "markovTransferMatrix.h"
+#include "logisticsRegression.h"
 
 constexpr unsigned int INTERVAL_TIME_S = 1;
 constexpr unsigned int INTERVAL_TIME_M = 60;
@@ -80,7 +81,7 @@ public:
 	/**
 	* @brief 获取用户所有的lrnode
 	*/
-	std::vector<lrNode> getLRNode() const;
+	std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> getLRNode() const;
 };
 
 

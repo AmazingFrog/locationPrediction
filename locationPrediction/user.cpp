@@ -53,7 +53,7 @@ void user::calcUserHasArrivalsPlane() {
 	this->ifHasArrivalsIsCalc = true;
 }
 
-std::vector<lrNode> user::getLRNode() const {
+std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> user::getLRNode() const {
 	double hod;
 	double dow;
 	double interval;
@@ -61,9 +61,10 @@ std::vector<lrNode> user::getLRNode() const {
 	double accessRatio;
 	double nr;
 	double nod;
+    double trueVal;
 	unsigned int newPlace = 0;
 	unsigned int alreadCalcFinishNum = 0;
-	std::vector<lrNode> ret;
+	std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> ret;
 	std::set<unsigned int> arrivals;
 	int dirt[8][2] = { {-1,1},{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1} };
 
@@ -113,10 +114,13 @@ std::vector<lrNode> user::getLRNode() const {
 			//nod
 			nod = static_cast<double>(i->timestamp - this->trace.begin()->timestamp) / INTERVAL_TIME_D;
 
+            //trueVal
+            trueVal = arrivals.find(i->g_i) == arrivals.end() ? 0.0 : 1.0;
+
 			arrivals.insert(i->g_i);
 			++alreadCalcFinishNum;
 
-			ret.emplace_back(hod, dow, interval, avgDistance, accessRatio, nr, nod);
+            ret.emplace_back(trueVal, hod, dow, interval, avgDistance, accessRatio, nr, nod);
 	}
 
 	return ret;

@@ -10,10 +10,15 @@
 
 #include "user.h"
 #include "types.h"
+#include "bpr.h"
+#include "logisticsRegression.h"
 #include "markovTransferMatrix.h"
 
 
 using namespace std;
+using namespace shochuAlgorithm::LogisticsRegression;
+using namespace shochuAlgorithm::BPR;
+
 
 unsigned int gsum = 0;
 double latMin = 181, latMax = -181, lngMin = 181, lngMax = -181, dis = 0.03;
@@ -23,17 +28,21 @@ unsigned int checkinRecord::ynum = 0;
 void getCheckinRecords(vector<checkinRecord>& checkinReocrds, const string& fileName);
 void getCheckinRecords(vector<checkinRecord>& checkinReocrds, const char* fileName);
 void initUsers(vector<user>& users, vector<checkinRecord>& checkinRecords);
-void getLRNodesFromUsers(const vector<user>& users, vector<lrNode>& lrTrainSet);
+void getLRNodesFromUsers(const vector<user>& users, vector<TrainNode>& lrTrainSet);
 
 int main(int argc, const char* argv[]) {
 	user::setPlaceNum(10);
 	vector<user> users;
 	vector<checkinRecord> checkinRecords;
-	vector<lrNode> lrTrainSet;
+	vector<TrainNode> lrTrainSet;
+    LogisticsRegression_impl lr;
 
 	getCheckinRecords(checkinRecords,"first_training.csv");
 	initUsers(users, checkinRecords);
 	getLRNodesFromUsers(users, lrTrainSet);
+
+    lr.add(lrTrainSet);
+    lr.train();
 
 	system("pause");
 	return 0;
@@ -112,9 +121,9 @@ void initUsers(vector<user>& users, vector<checkinRecord>& checkinRecords) {
 
 }
 
-void getLRNodesFromUsers(const vector<user>& users, vector<lrNode>& lrTrainSet) {
+void getLRNodesFromUsers(const vector<user>& users, vector<TrainNode>& lrTrainSet) {
 	for (auto i = users.begin(); i != users.end(); ++i) {
-		std::vector<lrNode> add(i->getLRNode());
+		std::vector<TrainNode> add(i->getLRNode());
 		lrTrainSet.insert(lrTrainSet.end(), add.begin(), add.end());
 	}
 }

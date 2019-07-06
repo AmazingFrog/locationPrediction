@@ -44,33 +44,6 @@ struct checkinRecord {
 		date(*gmtime(&_timestamp)){}
 };
 
-//逻辑回归训练数据
-struct lrNode {
-	//签到数据的小时数
-	//[0,23]
-	double hod;
-	//签到数据的天数
-	//[0,6]
-	double dow;
-	//两次签到的时间间隔
-	double interval;
-	//平均距离
-	double avgDistance;
-	//被访率
-	double accessRatio;
-	//新颖率
-	double nr;
-	//签到总天数
-	double nod;
-	lrNode() = default;
-	lrNode(double _hod,double _dow,double _interval,double _avgDistance,double _accessRatio,double _nr,double _nod) :
-		hod(_hod),
-		dow(_dow),
-		interval(_interval),
-		avgDistance(_avgDistance),
-		accessRatio(_accessRatio),
-		nr(_nr),
-		nod(_nod){}
-};
+
 
 #endif // _TYPES_H_

@@ -2,7 +2,7 @@
 
 unsigned int shochuAlgorithm::LogisticsRegression::featureNum = 0;
 
-shochuAlgorithm::LogisticsRegression::TrainNode::TrainNode(double _predictVal, std::initializer_list<double> il) : predictVal(_predictVal){
+shochuAlgorithm::LogisticsRegression::TrainNode::TrainNode(double _predictVal, std::initializer_list<double> il) : trueVal(_predictVal){
 	this->setPrddictVal(_predictVal);
 }
 
@@ -48,7 +48,7 @@ std::vector<double>& shochuAlgorithm::LogisticsRegression::LogisticsRegression_i
 				}
 				double hi = 1 / (i + exp(-zi));
 				//(h_i - y_i)*x_i
-				errorSum = (hi - )*(j->feature[i]);
+				errorSum = (hi - j->trueVal)*(j->feature[i]);
 			}
 			this->model[i] -= (learnRate * errorSum);
 			error += abs(learnRate * errorSum);
@@ -60,7 +60,6 @@ std::vector<double>& shochuAlgorithm::LogisticsRegression::LogisticsRegression_i
 		if (cnt % 50 == 0) {
 			learnRate /=  2;
 		}
-			
 	}
 	return this->model;
 }

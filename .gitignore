@@ -3,3 +3,4 @@ Release/
 locationPrediction/Debug
 locationPrediction/Release
 .vs/
+*.db
