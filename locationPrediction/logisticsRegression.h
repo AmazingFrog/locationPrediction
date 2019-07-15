@@ -12,15 +12,18 @@
 
 #include <list>
 #include <cmath>
+#include <string>
 #include <vector>
 #include <cassert>
+#include <fstream>
 #include <iterator>
 #include <initializer_list>
 
 namespace shochuAlgorithm {
 	namespace LogisticsRegression {
-		extern unsigned int featureNum;
-
+		//特征个数
+        extern unsigned int featureNum;
+        //训练节点
 		struct TrainNode {
 			double trueVal;
 			std::vector<double> feature;
@@ -44,6 +47,7 @@ namespace shochuAlgorithm {
 			}
 		};
 
+        //逻辑回归
 		class LogisticsRegression_impl {
 		public:
 			LogisticsRegression_impl();
@@ -68,6 +72,17 @@ namespace shochuAlgorithm {
 			*/
 			double predict(const TrainNode& a);
 
+            /**
+            * @brief 载入模型
+            */
+            bool load(const char* path);
+            bool load(const std::string& path);
+
+            /**
+            * @breif 保存模型
+            */
+            bool save(const char* path);
+            bool save(const std::string& path);
 		private:
 			std::list<TrainNode> trainSet;
 			std::vector<double> model;
@@ -76,5 +91,7 @@ namespace shochuAlgorithm {
 		};
 	}
 }
+
+#include "logisticsRegression.inl.hpp"
 
 #endif // _LOGISTICS_REGRESSION_H_

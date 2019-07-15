@@ -3,6 +3,10 @@
 unsigned int User::placeNum = 0;
 bool User::placeNumSet = false;
 
+inline double sigmoid(double v) {
+    return 1.0 / (1 + exp(-v));
+}
+
 User::User() {
 	assert(User::placeNumSet && "placeNum not set.");
 	this->transMatrix.create(User::placeNum);
@@ -86,6 +90,7 @@ std::list<shochuAlgorithm::LogisticsRegression::TrainNode> User::getLRNode() con
 
 			//两次签到时间差,单位秒
 			interval = static_cast<double>(i->timestamp - (std::prev(i, 1))->timestamp) / INTERVAL_TIME_S;
+            interval = sigmoid(interval);
 
 			//avgDistance
 			double sumDistance = 0;
@@ -94,6 +99,7 @@ std::list<shochuAlgorithm::LogisticsRegression::TrainNode> User::getLRNode() con
 				sumDistance += sqrt(temp);
 			}
 			avgDistance = sumDistance / alreadCalcFinishNum;
+            avgDistance = sigmoid(avgDistance);
 
 			//accessRatio
 			unsigned int accessPlaceNum = 0;
@@ -122,6 +128,7 @@ std::list<shochuAlgorithm::LogisticsRegression::TrainNode> User::getLRNode() con
 
 			//nod
 			nod = static_cast<double>(i->timestamp - this->trace.begin()->timestamp) / INTERVAL_TIME_D;
+            nod = sigmoid(nod);
 
             //trueVal
             trueVal = arrivals.find(i->g_i) == arrivals.end() ? 0.0 : 1.0;

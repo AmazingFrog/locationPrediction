@@ -37,6 +37,7 @@ int main(int argc, const char* argv[]) {
 	list<TrainNode> lrTrainSet;
     LogisticsRegression_impl lr;
 	Bpr_impl bpr;
+    vector<double> model;
 
 	getCheckinRecords(checkinRecords,"first_training.csv");
 	initUsers(users, checkinRecords,"edges_NY.csv");
@@ -44,7 +45,11 @@ int main(int argc, const char* argv[]) {
 
     
     lr.add(lrTrainSet);
-    lr.train();
+    model = lr.train();
+    for (auto i = model.begin(); i != model.end(); ++i) {
+        cout << *i << endl;
+    }
+    lr.save("model.txt");
 
 	system("pause");
 	return 0;
