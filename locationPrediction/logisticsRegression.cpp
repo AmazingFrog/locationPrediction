@@ -10,10 +10,10 @@ shochuAlgorithm::LogisticsRegression::TrainNode::TrainNode(double _predictVal, s
 shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::LogisticsRegression_impl() {
 	this->init();
 }
-shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::LogisticsRegression_impl(std::vector<TrainNode>&& a) :trainSet(a){
+shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::LogisticsRegression_impl(std::list<TrainNode>&& a) :trainSet(a){
 	this->init();
 }
-shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::LogisticsRegression_impl(const std::vector<TrainNode>& a) :trainSet(a){
+shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::LogisticsRegression_impl(const std::list<TrainNode>& a) :trainSet(a){
 	this->init();
 }
 void shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::init(){
@@ -27,10 +27,10 @@ void shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::add(const T
 void shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::add(TrainNode&& a) {
 	this->trainSet.push_back(a);
 }
-void shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::add(std::vector<TrainNode>&& a) {
+void shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::add(std::list<TrainNode>&& a) {
 	this->trainSet.insert(this->trainSet.end(), a.begin(), a.end());
 }
-void shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::add(const std::vector<TrainNode>& a) {
+void shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::add(const std::list<TrainNode>& a) {
 	this->trainSet.insert(this->trainSet.end(), a.begin(), a.end());
 }
 

@@ -10,9 +10,11 @@
 #ifndef _LOGISTICS_REGRESSION_H_
 #define _LOGISTICS_REGRESSION_H_
 
-#include <cassert>
+#include <list>
 #include <cmath>
 #include <vector>
+#include <cassert>
+#include <iterator>
 #include <initializer_list>
 
 namespace shochuAlgorithm {
@@ -45,16 +47,16 @@ namespace shochuAlgorithm {
 		class LogisticsRegression_impl {
 		public:
 			LogisticsRegression_impl();
-			LogisticsRegression_impl(std::vector<TrainNode>&& a);
-			LogisticsRegression_impl(const std::vector<TrainNode>& a);
+			LogisticsRegression_impl(std::list<TrainNode>&& a);
+			LogisticsRegression_impl(const std::list<TrainNode>& a);
 
 			/**
 			* @brief 添加数据
 			*/
 			void add(TrainNode&& a);
 			void add(const TrainNode& a);
-			void add(std::vector<TrainNode>&& a);
-			void add(const std::vector<TrainNode>& a);
+			void add(std::list<TrainNode>&& a);
+			void add(const std::list<TrainNode>& a);
 			
 			/**
 			* @beief 训练
@@ -67,7 +69,7 @@ namespace shochuAlgorithm {
 			double predict(const TrainNode& a);
 
 		private:
-			std::vector<TrainNode> trainSet;
+			std::list<TrainNode> trainSet;
 			std::vector<double> model;
 
 			void init();

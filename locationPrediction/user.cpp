@@ -34,12 +34,13 @@ void User::setPlaceNum(const unsigned int _placeNum) {
 }
 
 void User::addFriend(const User* fri) {
-	this->friends.insert(fri);
+	this->friends.push_back(fri);
 }
 
-void User::addTrace(const std::vector<CheckinRecord>::const_iterator& beg, const std::vector<CheckinRecord>::const_iterator& end) {
+void User::addTrace(const std::list<CheckinRecord>::const_iterator& beg, const std::list<CheckinRecord>::const_iterator& end) {
 	this->trace.insert(this->trace.cend(), beg, end);
-	std::sort(this->trace.begin(), this->trace.end(), [](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.timestamp < b.timestamp; });
+	//std::sort(this->trace.begin(), this->trace.end(), [](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.timestamp < b.timestamp; });
+	this->trace.sort([](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.timestamp < b.timestamp; });
 	//计算每个地点在历史签到轨迹里的概率
 	std::map<unsigned int, unsigned int> placeAppearNum;
 	unsigned int checkinTotalNum = this->trace.size();
@@ -50,18 +51,18 @@ void User::addTrace(const std::vector<CheckinRecord>::const_iterator& beg, const
 		this->placeProbability[i->first] = static_cast<double>(i->second) / checkinTotalNum;
 	}
 }
-void User::addTrace(const std::vector<CheckinRecord>& a) {
+void User::addTrace(const std::list<CheckinRecord>& a) {
 	this->addTrace(a.begin(), a.end());
 }
 
 void User::calcUserHasArrivalsPlane() {
 	for (auto i = this->trace.begin(); i != this->trace.end(); ++i) {
-		this->hasArrivals.insert(i->g_i);
+		this->hasArrivals.push_back(i->g_i);
 	}
 	this->ifHasArrivalsIsCalc = true;
 }
 
-std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> User::getLRNode() const {
+std::list<shochuAlgorithm::LogisticsRegression::TrainNode> User::getLRNode() const {
 	double hod;
 	double dow;
 	double interval;
@@ -72,19 +73,19 @@ std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> User::getLRNode() c
     double trueVal;
 	unsigned int newPlace = 0;
 	unsigned int alreadCalcFinishNum = 0;
-	std::vector<shochuAlgorithm::LogisticsRegression::TrainNode> ret;
+	std::list<shochuAlgorithm::LogisticsRegression::TrainNode> ret;
 	std::set<unsigned int> arrivals;
 	int dirt[8][2] = { {-1,1},{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1} };
 
 	alreadCalcFinishNum = 1;
 	newPlace = 1;
 	arrivals.insert(this->trace.begin()->g_i);
-	for (auto i = this->trace.begin() + 1; i != this->trace.end(); ++i) {
+	for (auto i = std::next(this->trace.begin(), 1); i != this->trace.end(); ++i) {
 			hod = static_cast<double>(i->date.tm_hour)/23;
 			dow = static_cast<double>(i->date.tm_wday)/6;
 
 			//两次签到时间差,单位秒
-			interval = static_cast<double>(i->timestamp - (i - 1)->timestamp) / INTERVAL_TIME_S;
+			interval = static_cast<double>(i->timestamp - (std::prev(i, 1))->timestamp) / INTERVAL_TIME_S;
 
 			//avgDistance
 			double sumDistance = 0;

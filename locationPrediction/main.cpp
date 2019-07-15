@@ -1,42 +1,40 @@
-#include <iostream>
-#include <fstream>
+#include <list>
+#include <ctime>
+#include <cmath>
 #include <vector>
 #include <string>
 #include <cstdlib>
 #include <cassert>
-#include <ctime>
-#include <cmath>
+#include <fstream>
+#include <iostream>
 #include <algorithm>
 
+#include "bpr.h"
 #include "user.h"
 #include "types.h"
-#include "bpr.h"
 #include "logisticsRegression.h"
 #include "MarkovTransferMatrix.h"
-
 
 using namespace std;
 using namespace shochuAlgorithm::BPR;
 using namespace shochuAlgorithm::LogisticsRegression;
-
-
 
 unsigned int gsum = 0;
 double latMin = 181, latMax = -181, lngMin = 181, lngMax = -181, dis = 0.03;
 unsigned int CheckinRecord::xnum = 0;
 unsigned int CheckinRecord::ynum = 0;
 
-void getCheckinRecords(vector<CheckinRecord>& checkinReocrds, const char* fileName);
-void initUsers(vector<User>& users, vector<CheckinRecord>& checkinRecords,const char* friendsInputFile,double friendIntimacyThreshold = 0.2,double userSimilarityThreshold = 0.7);
-void getLRNodesFromUsers(const vector<User>& users, vector<TrainNode>& lrTrainSet);
+void getCheckinRecords(list<CheckinRecord>& checkinReocrds, const char* fileName);
+void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords,const char* friendsInputFile,double friendIntimacyThreshold = 0.2,double userSimilarityThreshold = 0.7);
+void getLRNodesFromUsers(const list<User>& users, list<TrainNode>& lrTrainSet);
 
 int main(int argc, const char* argv[]) {
 	//设置必需参数
     shochuAlgorithm::LogisticsRegression::featureNum = 7;
 
-	vector<User> users;
-	vector<CheckinRecord> checkinRecords;
-	vector<TrainNode> lrTrainSet;
+	list<User> users;
+	list<CheckinRecord> checkinRecords;
+	list<TrainNode> lrTrainSet;
     LogisticsRegression_impl lr;
 	Bpr_impl bpr;
 
@@ -52,7 +50,7 @@ int main(int argc, const char* argv[]) {
 	return 0;
 }
 
-void getCheckinRecords(vector<CheckinRecord>& checkinRecords, const char* fileName) {
+void getCheckinRecords(list<CheckinRecord>& checkinRecords, const char* fileName) {
 	unsigned int xnum = 0;
 	unsigned int ynum = 0;
 	fstream fin;
@@ -92,13 +90,14 @@ void getCheckinRecords(vector<CheckinRecord>& checkinRecords, const char* fileNa
 	}
 
 	//按照用户名从小到大排序
-	sort(checkinRecords.begin(), checkinRecords.end(), [](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.userID < b.userID; });
+	//sort(checkinRecords.begin(), checkinRecords.end(), [](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.userID < b.userID; });
+	checkinRecords.sort([](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.userID < b.userID; });
 }
 
-void initUsers(vector<User>& users, vector<CheckinRecord>& checkinRecords, const char* friendsInputFile, double friendIntimacyThreshold,double userSimilarityThreshold) {
+void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const char* friendsInputFile, double friendIntimacyThreshold,double userSimilarityThreshold) {
 	//对每个用户中的签到数据按照时间排序
 	for (auto beg = checkinRecords.begin(); beg != checkinRecords.end();) {
-		auto end = beg + 1;
+		auto end = std::next(beg, 1);
 		
 		//找到某用户所有的签到数据,先前已经按照用户排序过了
 		while (end != checkinRecords.end() && beg->userID == end->userID) {
@@ -114,7 +113,7 @@ void initUsers(vector<User>& users, vector<CheckinRecord>& checkinRecords, const
 		beg = end;
 	}
 	{
-		vector<CheckinRecord> t;
+		list<CheckinRecord> t;
 		checkinRecords.swap(t);
 	}
 
@@ -130,7 +129,7 @@ void initUsers(vector<User>& users, vector<CheckinRecord>& checkinRecords, const
 		return;
 	}
 
-	vector<pair<unsigned int, unsigned int> > inputDataTemp;
+	list<pair<unsigned int, unsigned int> > inputDataTemp;
 	while (!friendsIn.eof()) {
 		unsigned int u = 0;
 		unsigned int f = 0;
@@ -142,7 +141,8 @@ void initUsers(vector<User>& users, vector<CheckinRecord>& checkinRecords, const
 	inputDataTemp.pop_back();
 
 	//输入的好友数据按照第一个数据排序
-	sort(inputDataTemp.begin(), inputDataTemp.end(), [](const pair<unsigned int, unsigned int>& a, const pair<unsigned int, unsigned int>& b)->bool {return a.first < b.first; });
+	//sort(inputDataTemp.begin(), inputDataTemp.end(), [](const pair<unsigned int, unsigned int>& a, const pair<unsigned int, unsigned int>& b)->bool {return a.first < b.first; });
+	inputDataTemp.sort([](const pair<unsigned int, unsigned int>& a, const pair<unsigned int, unsigned int>& b)->bool {return a.first < b.first; });
 	
 	auto user = users.begin();
 	auto userBackup = user;
@@ -175,7 +175,7 @@ void initUsers(vector<User>& users, vector<CheckinRecord>& checkinRecords, const
 		}
 	}
 	{
-		vector<pair<unsigned int, unsigned int> > t;
+		list<pair<unsigned int, unsigned int> > t;
 		inputDataTemp.swap(t);
 	}
 	//计算亲密好友
@@ -231,9 +231,9 @@ void initUsers(vector<User>& users, vector<CheckinRecord>& checkinRecords, const
 	}
 }
 
-void getLRNodesFromUsers(const vector<User>& users, vector<TrainNode>& lrTrainSet) {
+void getLRNodesFromUsers(const list<User>& users, list<TrainNode>& lrTrainSet) {
 	for (auto i = users.begin(); i != users.end(); ++i) {
-		std::vector<TrainNode> add(i->getLRNode());
+		std::list<TrainNode> add(i->getLRNode());
 		lrTrainSet.insert(lrTrainSet.end(), add.begin(), add.end());
 	}
 }

@@ -1,22 +1,13 @@
 #ifndef _MARKOV_TRANSFER_MATRIX_H_
 #define _MARKOV_TRANSFER_MATRIX_H_
 
+#include <memory>
 #include <cstring>
 #include <cstdlib>
-#include <memory>
 #include <cassert>
 #include <iostream>
 
 class MarkovTransferMatrix {
-private:
-	//矩阵 n*n
-	//元素默认值为1
-	std::unique_ptr<float*> mat;
-
-	//每行个数
-	unsigned int n = 0;
-	
-	void mul(const MarkovTransferMatrix& a);
 public:
 	MarkovTransferMatrix() = default;
 	MarkovTransferMatrix(const unsigned int& newN);
@@ -33,10 +24,19 @@ public:
 
 	/**
 	* @brief   自乘nn次
-	* @para    nn 自乘的次数
+	* @param   nn 自乘的次数
 	* @return  自乘的结果
 	*/
 	MarkovTransferMatrix power(const unsigned int nn) const;
+private:
+	//矩阵 n*n
+	//元素默认值为1
+	std::unique_ptr<float*> mat;
+
+	//每行个数
+	unsigned int n = 0;
+
+	void mul(const MarkovTransferMatrix& a);
 };
 
 #endif // _MARKOV_TRANSFER_MATRIX_H_
