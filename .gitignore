@@ -1,7 +1,5 @@
-Debug/
-Release/
-locationPrediction/Debug
-locationPrediction/Release
-.vs/
-*.db
-locationPrediction.VC.db
+*
+!*.h
+!*.cpp
+!*.hpp
+!*.csv
