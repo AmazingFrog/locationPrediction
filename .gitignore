@@ -4,3 +4,4 @@ locationPrediction/Debug
 locationPrediction/Release
 .vs/
 *.db
+locationPrediction.VC.db
