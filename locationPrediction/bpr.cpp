@@ -11,23 +11,23 @@ shochuAlgorithm::BPR::Bpr_impl::Bpr_impl(const int* data, const unsigned int use
 void shochuAlgorithm::BPR::Bpr_impl::add(const int* data, const unsigned int users,const unsigned int items) {
 	assert(this->isAlreadAdd == false && "already add data");
 	unsigned int perUesrAlreadAdd = 0;
-	unsigned int perUserRecordMax = this->times * items;
+	//unsigned int perUserRecordMax = this->times * items;
 	this->users = users;
 	this->items = items;
 	
-	this->trainSet.reserve(static_cast<unsigned int>(1.1*users*perUserRecordMax));
+	//this->trainSet.reserve(static_cast<unsigned int>(1.1*users*perUserRecordMax));
 	for (unsigned int u = 0; u < users; ++u) {
 		for (unsigned int i = 0; i < items; ++i) {
 			for (unsigned int j = 0; j < items; ++j) {
-				if (perUesrAlreadAdd < perUserRecordMax) {
+				//if (perUesrAlreadAdd < perUserRecordMax) {
 					if (data[u*items + i] && !data[u*items + j]) {
-						this->trainSet.push_back(Triad(u, i, j));
+                        this->trainSet.emplace_back(u, i, j);
 						++perUesrAlreadAdd;
 					}
-				}
-				else {
-					goto userAddRecordFinish;
-				}
+				//}
+				//else {
+				//	goto userAddRecordFinish;
+				//}
 			}
 		}
 	userAddRecordFinish:
@@ -48,7 +48,7 @@ void shochuAlgorithm::BPR::Bpr_impl::add(Triad&& a) {
 }
 
 void shochuAlgorithm::BPR::Bpr_impl::add(unsigned int u,unsigned int i,unsigned int j) {
-	this->trainSet.push_back(Triad(u, i, j));
+    this->trainSet.emplace_back(u, i, j);
 }
 
 void shochuAlgorithm::BPR::Bpr_impl::setTrainSetSize(const unsigned int a) {
@@ -92,7 +92,10 @@ void shochuAlgorithm::BPR::Bpr_impl::train(const double lambda, const double lea
 		loss[1] = 0.0;
 		loss[2] = 0.0;
 		for (count = 0; count < len; ++count) {
-			auto idx = this->trainSet[uniformIntRand(engine)];
+			//auto idx = this->trainSet[uniformIntRand(engine)];
+            auto ii = this->trainSet.begin();
+            std::advance(ii, uniformIntRand(engine));
+            Triad idx = *(ii);
 
 			double x_ui = this->predictUserItem(idx.u, idx.i);
 			double x_uj = this->predictUserItem(idx.u, idx.j);
@@ -137,16 +140,17 @@ void shochuAlgorithm::BPR::Bpr_impl::train(const double lambda, const double lea
 	}
 }
 
-std::vector<std::pair<int,double> > shochuAlgorithm::BPR::Bpr_impl::predict(const unsigned int user,const unsigned int n) const{
+std::list<std::pair<int,double> > shochuAlgorithm::BPR::Bpr_impl::predict(const unsigned int user,const unsigned int n) const{
 	assert(n <= this->items && "n must be less than or equal to items");
-	std::vector<std::pair<int,double> > ret;
+	std::list<std::pair<int,double> > ret;
 	std::unique_ptr<double*> t = std::make_unique<double*>(new double[this->items]);
 	memcpy(*t, *this->x + user*this->items, this->items * sizeof(double));
 	for (unsigned int i = 0; i < this->items; ++i) {
-		ret.push_back(std::pair<int, double>(i, (*t)[i]));
+        ret.emplace_back(i, (*t)[i]);
 	}
-	std::sort(ret.begin(), ret.end(), [](const std::pair<int, double>& a, const std::pair<int, double>& b)->bool {return a.second > b.second; });
-	ret.resize(n);
+	//std::sort(ret.begin(), ret.end(), [](const std::pair<int, double>& a, const std::pair<int, double>& b)->bool {return a.second > b.second; });
+    ret.sort([](const std::pair<int, double>& a, const std::pair<int, double>& b)->bool {return a.second > b.second; });
+    ret.resize(n);
 	return ret;
 }
 

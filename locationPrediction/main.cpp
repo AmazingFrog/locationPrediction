@@ -15,6 +15,8 @@
 #include "logisticsRegression.h"
 #include "MarkovTransferMatrix.h"
 
+#include <crtdbg.h>
+
 using namespace std;
 using namespace shochuAlgorithm::BPR;
 using namespace shochuAlgorithm::LogisticsRegression;
@@ -31,6 +33,7 @@ void getLRNodesFromUsers(const list<User>& users, list<TrainNode>& lrTrainSet);
 int main(int argc, const char* argv[]) {
 	//设置必需参数
     shochuAlgorithm::LogisticsRegression::featureNum = 7;
+    ios_base::sync_with_stdio(false);
 
 	list<User> users;
 	list<CheckinRecord> checkinRecords;
@@ -41,16 +44,17 @@ int main(int argc, const char* argv[]) {
 
 	getCheckinRecords(checkinRecords,"first_training.csv");
 	initUsers(users, checkinRecords,"edges_NY.csv");
-	getLRNodesFromUsers(users, lrTrainSet);
+	//getLRNodesFromUsers(users, lrTrainSet);
 
     
+    /*
     lr.add(lrTrainSet);
     model = lr.train();
     for (auto i = model.begin(); i != model.end(); ++i) {
         cout << *i << endl;
     }
     lr.save("model.txt");
-
+    */
 	system("pause");
 	return 0;
 }
@@ -76,7 +80,7 @@ void getCheckinRecords(list<CheckinRecord>& checkinRecords, const char* fileName
 		lngMin = lng < lngMin ? lng : lngMin;
 		lngMax = lng > lngMax ? lng : lngMax;
 
-		checkinRecords.push_back(CheckinRecord(id, timestamp, lat, lng));
+        checkinRecords.emplace_back(id, timestamp, lat, lng);
 	}
 	checkinRecords.pop_back();
 
@@ -85,7 +89,7 @@ void getCheckinRecords(list<CheckinRecord>& checkinRecords, const char* fileName
 	gsum = xnum * ynum;
 	CheckinRecord::xnum = xnum;
 	CheckinRecord::ynum = ynum;
-	User::setPlaceNum(10);
+	User::setPlaceNum(gsum);
 
 	//计算每个签到数据的g_i
 	for (auto i = checkinRecords.begin(); i != checkinRecords.end(); ++i) {
@@ -117,10 +121,7 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 		users.push_back(newUser);
 		beg = end;
 	}
-	{
-		list<CheckinRecord> t;
-		checkinRecords.swap(t);
-	}
+    checkinRecords.clear();
 
 	//计算每个用户自己的已到过的地点
 	for (auto i = users.begin(); i != users.end(); ++i) {
@@ -179,11 +180,9 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 			user->addFriend(&(*k));
 		}
 	}
-	{
-		list<pair<unsigned int, unsigned int> > t;
-		inputDataTemp.swap(t);
-	}
-	//计算亲密好友
+    inputDataTemp.clear();
+	
+    //计算亲密好友
 	for (auto i = users.begin(); i != users.end(); ++i) {
 		for (auto j = users.begin(); j != users.end(); ++j) {
 			if (i == j) {

@@ -14,11 +14,7 @@ MarkovTransferMatrix& MarkovTransferMatrix::create(const unsigned int _n) {
 	//检查内存是否分配成功
 	try {
 		this->mat = std::make_unique<float*>(new float[this->n*this->n]);
-		for (int i = 0; i < this->n; ++i) {
-			for (int j = 0; j < this->n; ++j) {
-				(*this->mat)[i*this->n + j] = 1;
-			}
-		}
+        memset(*this->mat, 0, this->n*this->n * sizeof(float));
 	}
 	catch (std::bad_alloc& error) {
 		std::cerr << "memory allocation error" << std::endl;

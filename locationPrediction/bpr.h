@@ -2,16 +2,17 @@
 #define _BRP_H_
 #define __DEBUG__
 
+#include <list>
 #include <cmath>
 #include <ctime>
 #include <string>
 #include <random>
-#include <vector>
 #include <memory>
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <iterator>
 #include <algorithm>
 
 #define BPR_CHICK_IN_NO       0
@@ -66,7 +67,7 @@ namespace shochuAlgorithm {
 			* @param n     推荐的物品个数
 			* @return      pair.first为物品标号,pair.second为用户user为物品的打分
 			*/
-			std::vector<std::pair<int, double> > predict(const unsigned int user, const unsigned int n) const;
+			std::list<std::pair<int, double> > predict(const unsigned int user, const unsigned int n) const;
 
 			/**
 			* @brief       预测uesr对item的打分
@@ -104,7 +105,7 @@ namespace shochuAlgorithm {
 
 		private:
 			bool isAlreadAdd = false;
-			std::vector<Triad> trainSet;
+			std::list<Triad> trainSet;
 
 			//用户 users*k
 			std::unique_ptr<double*> w;
