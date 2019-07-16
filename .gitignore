@@ -1,0 +1,8 @@
+*
+!*.h
+!*.cpp
+!*.hpp
+!*.csv
+!*.sln
+!locationPrediction/
+!.gitignore
