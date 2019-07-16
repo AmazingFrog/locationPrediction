@@ -4,5 +4,6 @@
 !*.hpp
 !*.csv
 !*.sln
+!*.txt
 !locationPrediction/
 !.gitignore
