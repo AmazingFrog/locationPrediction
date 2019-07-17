@@ -1,14 +1,15 @@
 #include "MarkovTransferMatrix.h"
 
-MarkovTransferMatrix::MarkovTransferMatrix(const unsigned int& newN) {
+//二维矩阵
+shochuAlgorithm::MarkovTransferMatrix_2DMatrix::MarkovTransferMatrix_2DMatrix(const unsigned int newN) : MarkovTransferMatrix(newN) {
 	this->create(newN);
 }
 
-MarkovTransferMatrix::MarkovTransferMatrix(const MarkovTransferMatrix& a) {
-	*this = a;
+shochuAlgorithm::MarkovTransferMatrix_2DMatrix::MarkovTransferMatrix_2DMatrix(const MarkovTransferMatrix_2DMatrix& a) : MarkovTransferMatrix(a.n) {
+	*this = static_cast<shochuAlgorithm::MarkovTransferMatrix>(a);
 }
 
-MarkovTransferMatrix& MarkovTransferMatrix::create(const unsigned int _n) {
+shochuAlgorithm::MarkovTransferMatrix_2DMatrix& shochuAlgorithm::MarkovTransferMatrix_2DMatrix::create(const unsigned int _n) {
 	this->n = _n;
 
 	//检查内存是否分配成功
@@ -27,8 +28,9 @@ MarkovTransferMatrix& MarkovTransferMatrix::create(const unsigned int _n) {
 	}
 }
 
-MarkovTransferMatrix& MarkovTransferMatrix::operator=(const MarkovTransferMatrix& a) {
-	this->n = a.n;
+shochuAlgorithm::MarkovTransferMatrix_2DMatrix& shochuAlgorithm::MarkovTransferMatrix_2DMatrix::operator=(MarkovTransferMatrix& aa) {
+    shochuAlgorithm::MarkovTransferMatrix_2DMatrix& a = dynamic_cast<shochuAlgorithm::MarkovTransferMatrix_2DMatrix&>(aa);
+    this->n = a.n;
 
 	try {
 		this->mat = std::make_unique<float*>(new float[this->n*this->n]);
@@ -44,21 +46,19 @@ MarkovTransferMatrix& MarkovTransferMatrix::operator=(const MarkovTransferMatrix
 	}
 
 	memcpy(*(this->mat), *(a.mat), this->n*this->n * sizeof(float));
+    return *this;
 }
 
-float* MarkovTransferMatrix::operator[](const unsigned int row) const {
+float* shochuAlgorithm::MarkovTransferMatrix_2DMatrix::operator[](const unsigned int row) const {
 	return &((*(this->mat))[row*this->n]);
 }
 
-float* MarkovTransferMatrix::operator[](const int row) const {
-	return this->operator[](static_cast<const unsigned int>(row));
-}
-
-void MarkovTransferMatrix::copyTo(MarkovTransferMatrix& dest) const {
-	dest.n = this->n;
-	if (dest.mat == nullptr) {
+void shochuAlgorithm::MarkovTransferMatrix_2DMatrix::copyTo(MarkovTransferMatrix& dest) const {
+    MarkovTransferMatrix_2DMatrix& dst = dynamic_cast<MarkovTransferMatrix_2DMatrix&>(dest);
+    dst.n = this->n;
+	if (dst.mat == nullptr) {
 		try {
-			dest.mat = std::make_unique<float*>(new float[this->n*this->n]);
+			dst.mat = std::make_unique<float*>(new float[this->n*this->n]);
 		}
 		catch (std::bad_alloc& error) {
 			std::cerr << "memory allocation error" << std::endl;
@@ -70,11 +70,11 @@ void MarkovTransferMatrix::copyTo(MarkovTransferMatrix& dest) const {
 			abort();
 		}
 	}
-	memcpy(*(dest.mat), *this->mat, this->n*this->n * sizeof(float));
+	memcpy(*(dst.mat), *this->mat, this->n*this->n * sizeof(float));
 }
 
-MarkovTransferMatrix MarkovTransferMatrix::power(const unsigned int nn) const {
-	MarkovTransferMatrix ret(this->n);
+shochuAlgorithm::MarkovTransferMatrix shochuAlgorithm::MarkovTransferMatrix_2DMatrix::power(const unsigned int nn) const {
+	MarkovTransferMatrix_2DMatrix ret(this->n);
 	if (nn == 0) {
 		return ret;
 	}
@@ -83,7 +83,7 @@ MarkovTransferMatrix MarkovTransferMatrix::power(const unsigned int nn) const {
 		return ret;
 	}
 	
-	ret = *this;
+	ret = static_cast<shochuAlgorithm::MarkovTransferMatrix>(*this);
 	if (nn & 1) {
 		ret.mul(ret);
 		ret.power(nn / 2);
@@ -97,9 +97,9 @@ MarkovTransferMatrix MarkovTransferMatrix::power(const unsigned int nn) const {
 	return ret;
 }
 
-void MarkovTransferMatrix::mul(const MarkovTransferMatrix& a) {
+void shochuAlgorithm::MarkovTransferMatrix_2DMatrix::mul(const shochuAlgorithm::MarkovTransferMatrix_2DMatrix& a) {
 	assert(this->n == a.n && "n must be the same");
-	MarkovTransferMatrix res(this->n);
+	MarkovTransferMatrix_2DMatrix res(this->n);
 
 	for (int i = 0; i < this->n; ++i) {
 		for (int j = 0; j < this->n; ++j) {
@@ -112,3 +112,6 @@ void MarkovTransferMatrix::mul(const MarkovTransferMatrix& a) {
 
 	res.copyTo(*this);
 }
+
+
+//稀疏矩阵
