@@ -73,14 +73,15 @@ namespace shochuAlgorithm {
         MarkovTransferMatrix_spzrseMatrix& operator=(MarkovTransferMatrix& a) override;
 
         MarkovTransferMatrix& create(const unsigned int _n);
-        void copyTo(MarkovTransferMatrix& dest) const;
+        void copyTo(MarkovTransferMatrix& dest) const override;
 
-        MarkovTransferMatrix power(unsigned int nn) const { return *this; };
+        MarkovTransferMatrix power(unsigned int nn) const override;
 
-        double at(const unsigned int x, const unsigned int y) { return 0.0; };
+        double at(const unsigned int x, const unsigned int y) override;
+	private:
+		std::unordered_map<std::pair<unsigned int, unsigned int>, double> mat;
     };
 }
-
 
 #endif // _MARKOV_TRANSFER_MATRIX_H_
 
