@@ -1,4 +1,4 @@
-inline void shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::add(const TrainNode& a) {
+﻿inline void shochuAlgorithm::LogisticsRegression::LogisticsRegression_impl::add(const TrainNode& a) {
     this->trainSet.push_back(a);
 }
 

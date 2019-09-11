@@ -1,4 +1,4 @@
-/**
+﻿/**
 *  实例化该类前先对命名空间中的featureNum赋值
 *
 *
@@ -21,9 +21,9 @@
 
 namespace shochuAlgorithm {
 	namespace LogisticsRegression {
-		//特征个数
+		//特征个数 
         extern unsigned int featureNum;
-        //训练节点
+        //训练节点 
 		struct TrainNode {
 			double trueVal;
 			std::vector<double> feature;
@@ -47,7 +47,7 @@ namespace shochuAlgorithm {
 			}
 		};
 
-        //逻辑回归
+        //逻辑回归 
 		class LogisticsRegression_impl {
 		public:
 			LogisticsRegression_impl();

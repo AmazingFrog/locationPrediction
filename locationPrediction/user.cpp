@@ -1,4 +1,4 @@
-#include "user.h"
+﻿#include "user.h"
 
 unsigned int User::placeNum = 0;
 bool User::placeNumSet = false;
@@ -9,7 +9,7 @@ inline double sigmoid(double v) {
 
 User::User() {
 	assert(User::placeNumSet && "placeNum not set.");
-	this->transMatrix.create(User::placeNum);
+	this->transMatrix = new shochuAlgorithm::MarkovTransferMatrix_spzrseMatrix(User::placeNum);
 	this->ifHasArrivalsIsCalc = false;
 }
 
@@ -19,8 +19,14 @@ User::User(const User& a) {
 	this->id = a.id;
 	this->trace = a.trace;
 	this->placeProbability = a.placeProbability;
-	a.transMatrix.copyTo(this->transMatrix);
+    this->transMatrix = new shochuAlgorithm::MarkovTransferMatrix_spzrseMatrix(User::placeNum);
+	a.transMatrix->copyTo(*(this->transMatrix));
 	this->ifHasArrivalsIsCalc = false;
+}
+
+User::~User() {
+    this->transMatrix->clear();
+    delete this->transMatrix;
 }
 
 void User::setID(const unsigned int i) {
@@ -38,6 +44,16 @@ void User::setPlaceNum(const unsigned int _placeNum) {
 }
 
 void User::addFriend(const User* fri) {
+    auto beg = this->friends.begin();
+    for (; beg != this->friends.end(); ++beg) {
+        if (*beg >= fri) {
+            if (*beg == fri) {
+                return;
+            }
+            this->friends.insert(beg, fri);
+            return;
+        }
+    }
 	this->friends.push_back(fri);
 }
 
@@ -45,6 +61,9 @@ void User::addTrace(const std::list<CheckinRecord>::const_iterator& beg, const s
 	this->trace.insert(this->trace.cend(), beg, end);
 	//std::sort(this->trace.begin(), this->trace.end(), [](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.timestamp < b.timestamp; });
 	this->trace.sort([](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.timestamp < b.timestamp; });
+    this->trace.unique([](const CheckinRecord& a, const CheckinRecord& b) {
+        return a.g_i == b.g_i;
+    });
 	//计算每个地点在历史签到轨迹里的概率
 	std::map<unsigned int, unsigned int> placeAppearNum;
 	unsigned int checkinTotalNum = this->trace.size();
@@ -63,6 +82,9 @@ void User::calcUserHasArrivalsPlane() {
 	for (auto i = this->trace.begin(); i != this->trace.end(); ++i) {
 		this->hasArrivals.push_back(i->g_i);
 	}
+    this->hasArrivals.sort([](unsigned int a, unsigned int b) {
+        return a < b;
+    });
 	this->ifHasArrivalsIsCalc = true;
 }
 
@@ -140,4 +162,31 @@ std::list<shochuAlgorithm::LogisticsRegression::TrainNode> User::getLRNode() con
 	}
 
 	return ret;
+}
+
+std::list<shochuAlgorithm::BPR::Triad> User::getBPRNode() const {
+    std::list<shochuAlgorithm::BPR::Triad> ret;
+
+    try {
+        int* data = new int[User::placeNum];
+        memset(data, 0, User::placeNum * sizeof(int));
+        for (auto i = this->hasArrivals.begin(); i != this->hasArrivals.end(); ++i) {
+            data[*i] = BPR_CKICK_IN_YES;
+        }
+
+        for (int i = 0; i < User::placeNum; ++i) {
+            for (int j = i + 1; j < User::placeNum; ++j) {
+                if (data[i] == BPR_CKICK_IN_YES && data[j] == BPR_CHICK_IN_NO) {
+                    ret.emplace_back(this->id, i, j);
+                }
+            }
+        }
+
+        delete[] data;
+    }
+    catch (std::bad_alloc e) {
+        std::cout << "don't have memory" << std::endl;
+    }
+    
+    return ret;
 }

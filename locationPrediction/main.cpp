@@ -1,4 +1,4 @@
-#include <list>
+﻿#include <list>
 #include <ctime>
 #include <cmath>
 #include <vector>
@@ -27,8 +27,9 @@ unsigned int CheckinRecord::xnum = 0;
 unsigned int CheckinRecord::ynum = 0;
 
 void getCheckinRecords(list<CheckinRecord>& checkinReocrds, const char* fileName);
-void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords,const char* friendsInputFile,double friendIntimacyThreshold = 0.2,double userSimilarityThreshold = 0.7);
+void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords,const char* friendsInputFile,double friendIntimacyThreshold = 0.7,double userSimilarityThreshold = 0.7);
 void getLRNodesFromUsers(const list<User>& users, list<TrainNode>& lrTrainSet);
+void getBPRNodesFromUsers(const list<User>& users, list<shochuAlgorithm::BPR::Triad>& bprTrainSet);
 
 int main(int argc, const char* argv[]) {
 	//设置必需参数
@@ -38,15 +39,34 @@ int main(int argc, const char* argv[]) {
 	list<User> users;
 	list<CheckinRecord> checkinRecords;
 	list<TrainNode> lrTrainSet;
+    list<shochuAlgorithm::BPR::Triad> bprTrainSet;
     LogisticsRegression_impl lr;
-	Bpr_impl bpr;
+	shochuAlgorithm::BPR::Bpr_impl bpr;
     vector<double> model;
 
 	getCheckinRecords(checkinRecords,"first_training.csv");
 	initUsers(users, checkinRecords,"edges_NY.csv");
 	//getLRNodesFromUsers(users, lrTrainSet);
-
+    cout << "get bpr" << endl;
+    system("pause");
+    //getBPRNodesFromUsers(users, bprTrainSet);
     
+    /*
+    int* data = new int[users.rbegin()->getID() * User::getPlaceNum()];
+    for (auto i = bprTrainSet.begin(); i != bprTrainSet.end(); ++i) {
+        data[i->u*User::getPlaceNum() + i->i] = BPR_CKICK_IN_YES;
+        data[i->u*User::getPlaceNum() + i->j] = BPR_CHICK_IN_NO;
+    }
+    */
+
+    /*
+    bpr.setTrainSetSize(20);
+    bpr.add(data, users.rbegin()->getID(), User::getPlaceNum());
+    delete[] data;
+    bpr.train(0.01);
+    bpr.saveModel("bpr.txt");
+    */
+
     /*
     lr.add(lrTrainSet);
     model = lr.train();
@@ -55,6 +75,7 @@ int main(int argc, const char* argv[]) {
     }
     lr.save("model.txt");
     */
+
 	system("pause");
 	return 0;
 }
@@ -66,7 +87,7 @@ void getCheckinRecords(list<CheckinRecord>& checkinRecords, const char* fileName
 	fin.open(fileName);
 	assert(fin.is_open() && "open file error,check fileName is right.");
 	
-	//输入所有数据
+	//输入所有数据 
 	while (!fin.eof()) {
 		unsigned int id;
 		time_t timestamp;
@@ -99,7 +120,7 @@ void getCheckinRecords(list<CheckinRecord>& checkinRecords, const char* fileName
 	}
 
 	//按照用户名从小到大排序
-	//sort(checkinRecords.begin(), checkinRecords.end(), [](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.userID < b.userID; });
+	//sort(checkinRecords.begin(), checkinRecords.end(), [](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.userID < b.userID; }); 
 	checkinRecords.sort([](const CheckinRecord& a, const CheckinRecord& b)->bool {return a.userID < b.userID; });
 }
 
@@ -147,12 +168,13 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 	inputDataTemp.pop_back();
 
 	//输入的好友数据按照第一个数据排序
-	//sort(inputDataTemp.begin(), inputDataTemp.end(), [](const pair<unsigned int, unsigned int>& a, const pair<unsigned int, unsigned int>& b)->bool {return a.first < b.first; });
+	//sort(inputDataTemp.begin(), inputDataTemp.end(), [](const pair<unsigned int, unsigned int>& a, const pair<unsigned int, unsigned int>& b)->bool {return a.first < b.first; }); 
 	inputDataTemp.sort([](const pair<unsigned int, unsigned int>& a, const pair<unsigned int, unsigned int>& b)->bool {return a.first < b.first; });
 	
 	auto user = users.begin();
 	auto userBackup = user;
-	for (auto i = inputDataTemp.begin(); i != inputDataTemp.end(); ++i) {
+	for (auto i = inputDataTemp.begin(); i != inputDataTemp.end(); ++i) {\
+        // u f 为一对好友关系
 		unsigned int u = i->first;
 		unsigned int f = i->second;
 		//从users中找到用户u
@@ -162,13 +184,13 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 				++user;
 			} while (user != users.end() && u != user->getID());
 		}
-		//跳过签到数据中没有的用户的好友关系
+		//跳过签到数据中没有的用户 的好友关系
 		if (user == users.end()) {
 			do {
 				++i;
-			} while (i->first == u);
+			} while (i != inputDataTemp.end() && i->first == u);
 			--i;
-			user = userBackup;;
+			user = userBackup;
 			continue;
 		}
 		//找到好友f的迭代器
@@ -181,7 +203,7 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 		}
 	}
     inputDataTemp.clear();
-	
+
     //计算亲密好友
 	for (auto i = users.begin(); i != users.end(); ++i) {
 		for (auto j = users.begin(); j != users.end(); ++j) {
@@ -191,14 +213,18 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 			unsigned int iFriendsNum = i->getFirends().size();
 			unsigned int jFriendsNum = j->getFirends().size();
 			unsigned int minFriendsNum = iFriendsNum < jFriendsNum ? iFriendsNum : jFriendsNum;
+            if (minFriendsNum == 0) {
+                continue;
+            }
+
 			vector<const User*> commonFriends(minFriendsNum);
-			vector<const User*>::iterator it;
+            vector<const User*>::iterator it;
 			//求两人的好友交集
-			it = set_intersection(i->getFirends().begin(), i->getFirends().end(), j->getFirends().begin(), j->getFirends().end(), commonFriends.begin());
+            it = set_intersection(i->getFirends().begin(), i->getFirends().end(), j->getFirends().begin(), j->getFirends().end(), commonFriends.begin());
 			//it - commonFirends.begin() 共同好友个数
 			double friendIntimacy = static_cast<double>(it - commonFriends.begin()) / minFriendsNum;
 			if (friendIntimacy >= friendIntimacyThreshold) {
-				i->addFriend(&(*j));
+                i->addFriend(&(*j));
 			}
 		}
 	}
@@ -212,6 +238,10 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 			unsigned int iHasArrivalNum = i->getHasArrivals().size();
 			unsigned int jHasArrivalNum = j->getHasArrivals().size();
 			unsigned int minArrivalNum = iHasArrivalNum < jHasArrivalNum ? iHasArrivalNum : jHasArrivalNum;
+
+            if (minArrivalNum == 0) {
+                continue;
+            }
 			vector<unsigned int> commonPlace(minArrivalNum);
 			vector<unsigned int>::iterator it;
 			it = set_intersection(i->getHasArrivals().begin(), i->getHasArrivals().end(), j->getHasArrivals().begin(), j->getHasArrivals().end(), commonPlace.begin());
@@ -240,4 +270,11 @@ void getLRNodesFromUsers(const list<User>& users, list<TrainNode>& lrTrainSet) {
 		std::list<TrainNode> add(i->getLRNode());
 		lrTrainSet.insert(lrTrainSet.end(), add.begin(), add.end());
 	}
+}
+
+void getBPRNodesFromUsers(const list<User>& users, list<shochuAlgorithm::BPR::Triad>& bprTrainSet) {
+    for (auto currentUser = users.begin(); currentUser != users.end(); ++currentUser) {
+        auto add = currentUser->getBPRNode();
+        bprTrainSet.insert(bprTrainSet.end(), add.begin(), add.end());
+    }
 }
