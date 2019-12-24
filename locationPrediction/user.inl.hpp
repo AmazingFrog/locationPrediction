@@ -5,7 +5,7 @@ inline unsigned int User::getID() {
 	return this->id;
 }
 
-inline const std::map<unsigned int, double>& User::getPlaceProbability() const {
+inline const std::unordered_map<unsigned int, double>& User::getPlaceProbability() const {
 	return this->placeProbability;
 }
 

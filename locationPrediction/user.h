@@ -9,7 +9,7 @@
 #define _USER_H_
 
 #include <set>
-#include <map>
+#include <unordered_map>
 #include <list>
 #include <cmath>
 #include <cassert>
@@ -63,7 +63,7 @@ public:
     /**
     * @brief 获取用户每个点在历史签到轨迹中的概率的map
     */
-    const std::map<unsigned int, double>& getPlaceProbability() const;
+    const std::unordered_map<unsigned int, double>& getPlaceProbability() const;
 
     /**
     * @brief 添加用户的亲密用户或者是相似用户
@@ -124,7 +124,7 @@ private:
 	std::list<CheckinRecord> trace;
 
 	//用户在历史签到轨迹里去过pair->first的概率为pair->second
-	std::map<unsigned int, double> placeProbability;
+	std::unordered_map<unsigned int, double> placeProbability;
 
 	//地点个数
 	static unsigned int placeNum;

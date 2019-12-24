@@ -78,7 +78,7 @@ void shochuAlgorithm::BPR::Bpr_impl::train(const float lambda, const float learn
 	std::uniform_int_distribution<unsigned int> uniformIntRand(0, len-1);
 	this->w = makeUnique(this->users * this->k);
 	this->h = makeUnique(this->k * this->items);
-	this->x = makeUnique(this->users * this->items);
+	//this->x = makeUnique(this->users * this->items);
 	for (unsigned int i = 0; i < this->users*this->k; ++i) {
 		(this->w.get())[i] = uniformfloatRand(engine);
 	}
@@ -86,6 +86,23 @@ void shochuAlgorithm::BPR::Bpr_impl::train(const float lambda, const float learn
 		(this->h.get())[i] = uniformfloatRand(engine);
 	}
 	
+    //209W的数据开根号为1444
+    //分块查找思想
+    //计算NUM个迭代器
+    //用来进行advance计算
+    //避免每次都从begin进行advance计算
+    constexpr int NUM = 1444;
+    std::vector<std::pair<int, std::list<Triad>::iterator> > fastFind;
+    const int iterInterval = this->trainSet.size() / NUM;
+    int index = 0;
+    auto subi = this->trainSet.begin();
+    for (int i = 0; i < NUM; ++i) {
+        fastFind.push_back(std::pair<int, std::list<Triad>::iterator>(index, subi));
+        index += iterInterval;
+        std::advance(subi, iterInterval);
+    }
+
+
 	while (runStep++ < step)
 	{
 #ifdef __DEBUG__
@@ -96,8 +113,20 @@ void shochuAlgorithm::BPR::Bpr_impl::train(const float lambda, const float learn
 		loss[2] = 0.0;
 		for (count = 0; count < len; ++count) {
 			//auto idx = this->trainSet[uniformIntRand(engine)];
+            if (count % 10000 == 0) {
+                std::cout << runStep << ' ' << count << std::endl;
+            }
+
             auto ii = this->trainSet.begin();
-            std::advance(ii, uniformIntRand(engine));
+            int adv = uniformIntRand(engine);
+            for (auto subi = fastFind.begin(); subi != fastFind.end(); ++subi) {
+                if ((subi == fastFind.end() - 1) || (adv >= subi->first && adv <= (subi + 1)->first)) {
+                    ii = subi->second;
+                    adv -= subi->first;
+                    break;
+                }
+            }
+            std::advance(ii, adv);
             Triad idx = *(ii);
 
 			float x_ui = this->predictUserItem(idx.u, idx.i);
@@ -133,6 +162,7 @@ void shochuAlgorithm::BPR::Bpr_impl::train(const float lambda, const float learn
 	std::cout << "train number:" << runStep - 1 << std::endl;
 #endif // __DEBUG__
 	//计算x
+    /*
 	for (unsigned int i = 0; i < users; ++i) {
 		for (unsigned int j = 0; j < items; ++j) {
 			(this->x.get())[i*this->items + j] = 0;
@@ -141,15 +171,18 @@ void shochuAlgorithm::BPR::Bpr_impl::train(const float lambda, const float learn
 			}
 		}
 	}
+    */
 }
 
 std::list<std::pair<int,float> > shochuAlgorithm::BPR::Bpr_impl::predict(const unsigned int user,const unsigned int n) const{
 	assert(n <= this->items && "n must be less than or equal to items");
 	std::list<std::pair<int,float> > ret;
-	std::unique_ptr<float*> t = std::make_unique<float*>(new float[this->items]);
-	memcpy(*t, this->x.get() + user*this->items, this->items * sizeof(float));
 	for (unsigned int i = 0; i < this->items; ++i) {
-        ret.emplace_back(i, (*t)[i]);
+        float itemPoint = 0;
+        for (int j = 0; j < this->k; ++j) {
+            itemPoint += ((this->w.get())[user*this->items + j] * (this->h.get())[j*this->k + i]);
+        }
+        ret.emplace_back(i, itemPoint);
 	}
 	//std::sort(ret.begin(), ret.end(), [](const std::pair<int, float>& a, const std::pair<int, float>& b)->bool {return a.second > b.second; });
     ret.sort([](const std::pair<int, float>& a, const std::pair<int, float>& b)->bool {return a.second > b.second; });

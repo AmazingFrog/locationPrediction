@@ -2,6 +2,7 @@
 #define _BPR_H_
 #define __DEBUG__
 
+#include <vector>
 #include <list>
 #include <cmath>
 #include <ctime>

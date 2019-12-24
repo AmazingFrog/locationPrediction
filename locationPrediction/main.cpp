@@ -29,7 +29,7 @@ unsigned int CheckinRecord::ynum = 0;
 void getCheckinRecords(list<CheckinRecord>& checkinReocrds, const char* fileName);
 void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords,const char* friendsInputFile,double friendIntimacyThreshold = 0.7,double userSimilarityThreshold = 0.7);
 void getLRNodesFromUsers(const list<User>& users, list<TrainNode>& lrTrainSet);
-void getBPRNodesFromUsers(const list<User>& users, list<shochuAlgorithm::BPR::Triad>& bprTrainSet);
+void getBPRNodesFromUsers(const list<User>& users,Bpr_impl& bpr);
 
 int main(int argc, const char* argv[]) {
 	//设置必需参数
@@ -39,33 +39,34 @@ int main(int argc, const char* argv[]) {
 	list<User> users;
 	list<CheckinRecord> checkinRecords;
 	list<TrainNode> lrTrainSet;
-    list<shochuAlgorithm::BPR::Triad> bprTrainSet;
     LogisticsRegression_impl lr;
 	shochuAlgorithm::BPR::Bpr_impl bpr;
     vector<double> model;
 
+    cout << "get checkin record" << endl;
 	getCheckinRecords(checkinRecords,"first_training.csv");
+    cout << "init users" << endl;
 	initUsers(users, checkinRecords,"edges_NY.csv");
+    {
+        list<CheckinRecord> nop;
+        checkinRecords.swap(nop);
+    }
 	//getLRNodesFromUsers(users, lrTrainSet);
     cout << "get bpr" << endl;
-    system("pause");
-    //getBPRNodesFromUsers(users, bprTrainSet);
-    
-    /*
-    int* data = new int[users.rbegin()->getID() * User::getPlaceNum()];
-    for (auto i = bprTrainSet.begin(); i != bprTrainSet.end(); ++i) {
-        data[i->u*User::getPlaceNum() + i->i] = BPR_CKICK_IN_YES;
-        data[i->u*User::getPlaceNum() + i->j] = BPR_CHICK_IN_NO;
-    }
-    */
 
-    /*
+    getBPRNodesFromUsers(users, bpr);
+    bpr.setUserItem(users.rbegin()->getID(),User::getPlaceNum());
+    {
+        list<User> nop;
+        users.swap(nop);
+    }
+    cout << "train" << endl;
+    //缩小数据集
     bpr.setTrainSetSize(20);
-    bpr.add(data, users.rbegin()->getID(), User::getPlaceNum());
-    delete[] data;
+
     bpr.train(0.01);
     bpr.saveModel("bpr.txt");
-    */
+    
 
     /*
     lr.add(lrTrainSet);
@@ -76,6 +77,7 @@ int main(int argc, const char* argv[]) {
     lr.save("model.txt");
     */
 
+    cout << "finish" << endl;
 	system("pause");
 	return 0;
 }
@@ -202,7 +204,10 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 			user->addFriend(&(*k));
 		}
 	}
-    inputDataTemp.clear();
+    {
+        list<pair<unsigned int, unsigned int> > nop;
+        inputDataTemp.swap(nop);
+    }
 
     //计算亲密好友
 	for (auto i = users.begin(); i != users.end(); ++i) {
@@ -210,10 +215,23 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 			if (i == j) {
 				continue;
 			}
-			unsigned int iFriendsNum = i->getFirends().size();
-			unsigned int jFriendsNum = j->getFirends().size();
-			unsigned int minFriendsNum = iFriendsNum < jFriendsNum ? iFriendsNum : jFriendsNum;
-            if (minFriendsNum == 0) {
+
+            //排除好友数为1的用户,影响数据
+            unsigned int iFriendsNum = i->getFirends().size();
+            unsigned int jFriendsNum = j->getFirends().size();
+            unsigned int minFriendsNum = iFriendsNum < jFriendsNum ? iFriendsNum : jFriendsNum;
+            if (minFriendsNum <= 1) {
+                continue;
+            }
+
+            //排除已经是好友的用户对
+            bool isAlreadAdd = false;
+            for (auto ii = i->getFirends().begin(); ii != i->getFirends().end();++ii) {
+                if (const_cast<User*>(*ii)->getID() == j->getID()) {
+                    isAlreadAdd = true;
+                }
+            }
+            if (isAlreadAdd) {
                 continue;
             }
 
@@ -224,6 +242,8 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 			//it - commonFirends.begin() 共同好友个数
 			double friendIntimacy = static_cast<double>(it - commonFriends.begin()) / minFriendsNum;
 			if (friendIntimacy >= friendIntimacyThreshold) {
+                //cout << "共同好友 " << it - commonFriends.begin() << "最少好友 " <<  minFriendsNum << endl;
+                //cout << i->getID() << " get friend " << j->getID() << "int : " <<  friendIntimacy << endl;
                 i->addFriend(&(*j));
 			}
 		}
@@ -239,7 +259,7 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 			unsigned int jHasArrivalNum = j->getHasArrivals().size();
 			unsigned int minArrivalNum = iHasArrivalNum < jHasArrivalNum ? iHasArrivalNum : jHasArrivalNum;
 
-            if (minArrivalNum == 0) {
+            if (minArrivalNum <= 1) {
                 continue;
             }
 			vector<unsigned int> commonPlace(minArrivalNum);
@@ -259,6 +279,7 @@ void initUsers(list<User>& users, list<CheckinRecord>& checkinRecords, const cha
 			}
 			double UserSimilarity = a / sqrt(b*c);
 			if (UserSimilarity >= userSimilarityThreshold) {
+                //cout << i->getID() << " get similar user " << j->getID() << " simila : " << UserSimilarity << endl;
 				i->addFriend(&(*j));
 			}
 		}
@@ -272,9 +293,21 @@ void getLRNodesFromUsers(const list<User>& users, list<TrainNode>& lrTrainSet) {
 	}
 }
 
-void getBPRNodesFromUsers(const list<User>& users, list<shochuAlgorithm::BPR::Triad>& bprTrainSet) {
+void getBPRNodesFromUsers(const list<User>& users,  Bpr_impl& bpr) {
     for (auto currentUser = users.begin(); currentUser != users.end(); ++currentUser) {
         auto add = currentUser->getBPRNode();
-        bprTrainSet.insert(bprTrainSet.end(), add.begin(), add.end());
+        
+        //缩小数据集
+        int max =add.size() / 2;
+        int index = 0;
+        for (auto i = add.begin(); i != add.end(); ++i) {
+            if (index < max) {
+                bpr.add(i->u, i->i, i->j);
+            }
+            else {
+                break;
+            }
+            ++index;
+        }
     }
 }

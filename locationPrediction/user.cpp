@@ -65,7 +65,7 @@ void User::addTrace(const std::list<CheckinRecord>::const_iterator& beg, const s
         return a.g_i == b.g_i;
     });
 	//计算每个地点在历史签到轨迹里的概率
-	std::map<unsigned int, unsigned int> placeAppearNum;
+	std::unordered_map<unsigned int, unsigned int> placeAppearNum;
 	unsigned int checkinTotalNum = this->trace.size();
 	for (auto i = this->trace.begin(); i != this->trace.end(); ++i) {
 		++(placeAppearNum[i->g_i]);
@@ -85,6 +85,7 @@ void User::calcUserHasArrivalsPlane() {
     this->hasArrivals.sort([](unsigned int a, unsigned int b) {
         return a < b;
     });
+    this->hasArrivals.unique();
 	this->ifHasArrivalsIsCalc = true;
 }
 
@@ -171,7 +172,9 @@ std::list<shochuAlgorithm::BPR::Triad> User::getBPRNode() const {
         int* data = new int[User::placeNum];
         memset(data, 0, User::placeNum * sizeof(int));
         for (auto i = this->hasArrivals.begin(); i != this->hasArrivals.end(); ++i) {
-            data[*i] = BPR_CKICK_IN_YES;
+            if (*i < User::placeNum) {
+                data[*i] = BPR_CKICK_IN_YES;
+            }
         }
 
         for (int i = 0; i < User::placeNum; ++i) {
